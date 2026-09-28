@@ -1,12 +1,19 @@
-   import { Component, signal } from '@angular/core';
-   import { RouterOutlet } from '@angular/router';
+import { Component, inject } from '@angular/core';
+import { Router, RouterLink, RouterOutlet } from '@angular/router';
+import { AuthService } from './core/auth.service';
 
-   @Component({
-     selector: 'app-root',
-     imports: [RouterOutlet],
-     templateUrl: './app.html',
-     styleUrl: './app.scss'
-   })
-   export class App {
-     protected readonly title = signal('fronet-petadot');
-   }
+@Component({
+  selector: 'app-root',
+  imports: [RouterOutlet, RouterLink],
+  templateUrl: './app.html',
+  styleUrl: './app.scss',
+})
+export class App {
+  protected auth = inject(AuthService);
+  private router = inject(Router);
+
+  salir(): void {
+    this.auth.cerrarSesion();
+    this.router.navigate(['/login']);
+  }
+}

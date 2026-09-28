@@ -1,1 +1,21 @@
-   <router-outlet></router-outlet>
+<header class="nav">
+  <a routerLink="/catalogo" class="logo">PetAdopt</a>
+  <nav>
+    <a routerLink="/catalogo">Catálogo</a>
+    @if (auth.estaAutenticado()) {
+      @if (auth.obtenerRol() === 'VENDEDOR') {
+        <a routerLink="/publicar">Publicar</a>
+      }
+      <a routerLink="/solicitudes">Solicitudes</a>
+      <a routerLink="/perfil">Perfil</a>
+      <button type="button" class="btn btn-link" (click)="salir()">Salir</button>
+    } @else {
+      <a routerLink="/login">Ingresar</a>
+      <a routerLink="/registro">Registrarse</a>
+    }
+  </nav>
+</header>
+
+<main class="contenedor">
+  <router-outlet />
+</main>

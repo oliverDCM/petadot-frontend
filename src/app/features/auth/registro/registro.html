@@ -1,1 +1,57 @@
-<p>registro works!</p>
+<div class="tarjeta">
+  <h1>Crear cuenta</h1>
+
+  @if (error()) {
+    <div class="alerta-error">{{ error() }}</div>
+  }
+
+  <form [formGroup]="form" (ngSubmit)="enviar()" novalidate>
+    <div class="campo">
+      <label for="nombre">Nombre completo</label>
+      <input id="nombre" type="text" formControlName="nombre" autocomplete="name" />
+      @if (form.controls.nombre.touched && form.controls.nombre.invalid) {
+        <p class="error">El nombre es obligatorio</p>
+      }
+    </div>
+
+    <div class="campo">
+      <label for="email">Email</label>
+      <input id="email" type="email" formControlName="email" autocomplete="email" />
+      @if (form.controls.email.touched && form.controls.email.invalid) {
+        <p class="error">Escribe un email válido</p>
+      }
+    </div>
+
+    <div class="campo">
+      <label for="password">Contraseña</label>
+      <input id="password" type="password" formControlName="password" autocomplete="new-password" />
+      @if (form.controls.password.touched && form.controls.password.invalid) {
+        <p class="error">Debe tener entre 8 y 72 caracteres</p>
+      }
+    </div>
+
+    <div class="campo">
+      <label for="telefono">Teléfono (opcional)</label>
+      <input id="telefono" type="tel" formControlName="telefono" autocomplete="tel" />
+    </div>
+
+    <div class="campo">
+      <label for="ciudad">Ciudad (opcional)</label>
+      <input id="ciudad" type="text" formControlName="ciudad" />
+    </div>
+
+    <div class="campo">
+      <label for="rol">¿Qué quieres hacer?</label>
+      <select id="rol" formControlName="rol">
+        <option value="ADOPTANTE">Adoptar o comprar un animal</option>
+        <option value="VENDEDOR">Publicar animales</option>
+      </select>
+    </div>
+
+    <button class="btn" type="submit" [disabled]="cargando()">
+      {{ cargando() ? 'Creando cuenta...' : 'Registrarme' }}
+    </button>
+  </form>
+
+  <p class="pie">¿Ya tienes cuenta? <a routerLink="/login">Inicia sesión</a></p>
+</div>
