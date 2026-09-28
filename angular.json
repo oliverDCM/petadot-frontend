@@ -6,6 +6,11 @@
     "analytics": "3fb4c4fe-86d2-4867-b403-2b7bad1b992e"
   },
   "newProjectRoot": "projects",
+  "schematics": {
+    "@schematics/angular:component": {
+      "style": "scss"
+    }
+  },
   "projects": {
     "fronet-petadot": {
       "projectType": "application",
@@ -26,7 +31,7 @@
               }
             ],
             "styles": [
-              "src/styles.css"
+              "src/styles.scss"
             ]
           },
           "configurations": {
@@ -35,6 +40,7 @@
                 {
                   "type": "initial",
                   "maximumWarning": "500kB",
+                  
                   "maximumError": "1MB"
                 },
                 {
