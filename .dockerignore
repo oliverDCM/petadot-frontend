@@ -1,0 +1,20 @@
+# Dependencias y resultados de compilación (se generan dentro de la imagen)
+node_modules/
+dist/
+.angular/
+out-tsc/
+
+# Control de versiones e IDE
+.git
+.gitignore
+.vscode/
+.idea/
+
+# Secretos y archivos locales: nunca deben entrar a la imagen
+.env
+.env.*
+*.log
+npm-debug.log*
+
+# Documentación
+*.md
