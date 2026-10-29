@@ -1,1 +1,77 @@
-<p>publicar works!</p>
+<div class="tarjeta">
+  <h1>Publicar animal</h1>
+
+  @if (error()) {
+    <div class="alerta-error">{{ error() }}</div>
+  }
+
+  <form [formGroup]="form" (ngSubmit)="enviar()" novalidate>
+    <div class="campo">
+      <label for="nombre">Nombre</label>
+      <input id="nombre" type="text" formControlName="nombre" />
+      @if (form.controls.nombre.touched && form.controls.nombre.invalid) {
+        <p class="error">El nombre es obligatorio</p>
+      }
+    </div>
+
+    <div class="campo">
+      <label for="tipo">Tipo de publicación</label>
+      <select id="tipo" formControlName="tipo">
+        <option value="ADOPCION">Adopción</option>
+        <option value="VENTA">Venta</option>
+      </select>
+    </div>
+
+    <div class="campo">
+      <label for="especie">Especie</label>
+      <select id="especie" formControlName="especie">
+        <option value="PERRO">Perro</option>
+        <option value="GATO">Gato</option>
+        <option value="OTRO">Otro</option>
+      </select>
+    </div>
+
+    <div class="campo">
+      <label for="raza">Raza</label>
+      <input id="raza" type="text" formControlName="raza" />
+    </div>
+
+    <div class="campo">
+      <label for="edadMeses">Edad (en meses)</label>
+      <input id="edadMeses" type="number" min="0" formControlName="edadMeses" />
+      @if (form.controls.edadMeses.invalid) {
+        <p class="error">La edad no puede ser negativa</p>
+      }
+    </div>
+
+    <div class="campo">
+      <label for="sexo">Sexo</label>
+      <select id="sexo" formControlName="sexo">
+        <option value="MACHO">Macho</option>
+        <option value="HEMBRA">Hembra</option>
+      </select>
+    </div>
+
+    <p><label><input type="checkbox" formControlName="vacunado" /> Vacunado</label></p>
+    <p><label><input type="checkbox" formControlName="esterilizado" /> Esterilizado</label></p>
+
+    <div class="campo">
+      <label for="descripcion">Descripción</label>
+      <textarea id="descripcion" rows="4" formControlName="descripcion"></textarea>
+    </div>
+
+    <div class="campo">
+      <label for="fotoUrl">Enlace de la foto (opcional)</label>
+      <input id="fotoUrl" type="text" formControlName="fotoUrl" />
+    </div>
+
+    <div class="campo">
+      <label for="ciudad">Ciudad</label>
+      <input id="ciudad" type="text" formControlName="ciudad" />
+    </div>
+
+    <button class="btn" type="submit" [disabled]="cargando()">
+      {{ cargando() ? 'Publicando...' : 'Publicar' }}
+    </button>
+  </form>
+</div>

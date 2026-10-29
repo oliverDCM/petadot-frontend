@@ -1,5 +1,9 @@
 <h1>Animales disponibles</h1>
 
+@if (avisoOk()) {
+  <p><strong>✅ {{ avisoOk() }}</strong></p>
+}
+
 @if (cargando()) {
   <p>Cargando...</p>
 } @else if (error()) {
@@ -10,10 +14,33 @@
   <div class="lista">
     @for (a of animales(); track a.id) {
       <div class="tarjeta">
+        @if (a.fotoUrl) {
+          <img class="foto" [src]="a.fotoUrl" [alt]="a.nombre" referrerpolicy="no-referrer" />
+        }
         <h2>{{ a.nombre }}</h2>
         <p>{{ a.especie }} · {{ a.sexo }}</p>
         <p>{{ a.ciudad }}</p>
         <p>{{ a.descripcion }}</p>
+
+        @if (auth.obtenerRol() === 'ADOPTANTE') {
+          @if (animalSolicitado() === a.id) {
+            <div class="campo">
+              <label for="mensaje">Mensaje para el vendedor</label>
+              <textarea id="mensaje" rows="3" maxlength="500" [(ngModel)]="mensaje"></textarea>
+            </div>
+            @if (avisoError()) {
+              <div class="alerta-error">{{ avisoError() }}</div>
+            }
+            <button class="btn" type="button" (click)="enviarSolicitud()" [disabled]="enviando()">
+              {{ enviando() ? 'Enviando...' : 'Enviar solicitud' }}
+            </button>
+            <button class="btn btn-link" type="button" (click)="cancelar()">Cancelar</button>
+          } @else {
+            <button class="btn" type="button" (click)="abrirSolicitud(a.id)">Solicitar adopción</button>
+          }
+        } @else if (!auth.estaAutenticado()) {
+          <p class="pie"><a routerLink="/login">Inicia sesión</a> para solicitar la adopción</p>
+        }
       </div>
     }
   </div>

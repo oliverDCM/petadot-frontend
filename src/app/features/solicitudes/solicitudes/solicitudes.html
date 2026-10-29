@@ -1,1 +1,50 @@
-<p>solicitudes works!</p>
+<h1>{{ auth.obtenerRol() === 'VENDEDOR' ? 'Solicitudes recibidas' : 'Mis solicitudes' }}</h1>
+
+@if (aviso()) {
+  <p><strong>✅ {{ aviso() }}</strong></p>
+}
+@if (avisoError()) {
+  <div class="alerta-error">{{ avisoError() }}</div>
+}
+
+@if (cargando()) {
+  <p>Cargando...</p>
+} @else if (error()) {
+  <div class="alerta-error">No se pudieron cargar las solicitudes</div>
+} @else if (solicitudes().length === 0) {
+  <p>No hay solicitudes por ahora.</p>
+} @else {
+  <div class="lista">
+    @for (s of solicitudes(); track s.id) {
+      <div class="tarjeta">
+        <h2>{{ s.animalNombre ?? 'Animal #' + s.animalId }}</h2>
+
+        @if (auth.obtenerRol() === 'VENDEDOR') {
+          <p><strong>Solicitante:</strong> {{ s.solicitanteNombre ?? 'Usuario #' + s.solicitanteId }}</p>
+        }
+
+        <p>{{ s.mensaje }}</p>
+        <p class="fecha">Enviada el {{ s.fechaSolicitud | date: 'dd/MM/yyyy' }}</p>
+
+        <p>
+          <span
+            class="estado"
+            [class.aprobada]="s.estado === 'APROBADA'"
+            [class.rechazada]="s.estado === 'RECHAZADA'"
+          >{{ etiqueta(s.estado) }}</span>
+        </p>
+
+        @if (auth.obtenerRol() === 'VENDEDOR' && s.estado === 'PENDIENTE') {
+          <div class="acciones">
+            <button class="btn" type="button" (click)="decidir(s.id, 'APROBAR')" [disabled]="procesando() === s.id">
+              Aprobar
+            </button>
+            <button class="btn btn-secundario" type="button" (click)="decidir(s.id, 'RECHAZAR')" [disabled]="procesando() === s.id">
+              Rechazar
+            </button>
+          </div>
+        }
+      </div>
+    }
+  </div>
+}

@@ -1,0 +1,40 @@
+.lista {
+  display: grid;
+  gap: 1rem;
+}
+
+.tarjeta {
+  max-width: none;
+  margin: 0;
+}
+
+h2 { margin-top: 0; }
+
+.fecha {
+  color: #6b7280;
+  font-size: 0.85rem;
+}
+
+.estado {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  background: #fff4e5;
+  color: #b45309;
+}
+.estado.aprobada { background: #e6f4ea; color: #1e7e34; }
+.estado.rechazada { background: #fdecea; color: var(--color-error); }
+
+.acciones {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.btn-secundario {
+  background: #fff;
+  color: var(--color-error);
+  border: 1px solid var(--color-error);
+}

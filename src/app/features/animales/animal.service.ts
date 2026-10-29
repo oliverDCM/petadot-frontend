@@ -5,7 +5,8 @@ import { environment } from '../../../environments/environment';
 
 export type Especie = 'PERRO' | 'GATO' | 'OTRO';
 export type Sexo = 'MACHO' | 'HEMBRA';
-export type Estado = 'DISPONIBLE' | 'EN_PROCESO' | 'ADOPTADO';
+export type Estado = 'DISPONIBLE' | 'RESERVADO' | 'ADOPTADO' | 'RETIRADO';
+export type Tipo = 'VENTA' | 'ADOPCION';
 
 export interface AnimalDatos {
   nombre: string;
@@ -16,6 +17,9 @@ export interface AnimalDatos {
   descripcion: string;
   fotoUrl: string;
   ciudad: string;
+  vacunado: boolean;
+  esterilizado: boolean;
+  tipo: Tipo;
 }
 
 export interface Animal extends AnimalDatos {
@@ -32,6 +36,10 @@ export class AnimalService {
 
   listar(): Observable<Animal[]> {
     return this.http.get<Animal[]>(this.api);
+  }
+
+  misPublicaciones(): Observable<Animal[]> {
+    return this.http.get<Animal[]>(`${this.api}/mis-publicaciones`);
   }
 
   publicar(datos: AnimalDatos): Observable<Animal> {

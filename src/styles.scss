@@ -81,3 +81,12 @@ a { color: var(--color-primario); text-decoration: none; }
   color: var(--color-error);
 }
 .pie { text-align: center; margin: 1rem 0 0; font-size: 0.9rem; }
+.campo textarea {
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--color-borde);
+  border-radius: 8px;
+  font-size: 1rem;
+  font-family: inherit;
+  resize: vertical;
+}
+.campo textarea:focus { outline: 2px solid var(--color-primario); border-color: transparent; }

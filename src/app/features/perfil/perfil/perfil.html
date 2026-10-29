@@ -1,12 +1,9 @@
 <div class="tarjeta">
   <h1>Mi perfil</h1>
 
-  @if (error()) {
-    <div class="alerta-error">No se pudo cargar el perfil</div>
-  } @else if (datos(); as d) {
-    <p><strong>Email:</strong> {{ d.email }}</p>
-    <p><strong>Rol:</strong> {{ d.rol }}</p>
-  } @else {
-    <p>Cargando...</p>
+  @if (auth.sesion(); as s) {
+    <p><strong>Nombre:</strong> {{ s.nombre }}</p>
+    <p><strong>Email:</strong> {{ s.email }}</p>
+    <p><strong>Rol:</strong> {{ s.rol === 'VENDEDOR' ? 'Vendedor' : 'Adoptante' }}</p>
   }
 </div>
