@@ -1,0 +1,37 @@
+<div class="angosto">
+  <div class="panel">
+    <h1>Recuperar contraseña</h1>
+
+    @if (enviado(); as mensaje) {
+      <div class="mensaje mensaje-exito" role="status">
+        <p>{{ mensaje }}.</p>
+        <p>Revisa también la carpeta de spam. El enlace vence en 30 minutos y solo funciona una vez.</p>
+      </div>
+      <div class="acciones">
+        <a routerLink="/login" class="boton boton-verde">Volver a iniciar sesión</a>
+        <button type="button" class="boton boton-secundario" (click)="enviado.set(null)">Usar otro email</button>
+      </div>
+    } @else {
+      <p class="texto-suave">Escribe el email de tu cuenta y te enviaremos un enlace para crear una contraseña nueva.</p>
+
+      @if (error()) {
+        <div class="mensaje mensaje-error" role="alert">{{ error() }}</div>
+      }
+
+      <form class="formulario" [formGroup]="form" (ngSubmit)="enviar()" novalidate>
+        <div class="campo" [class.invalido]="form.controls.email.touched && form.controls.email.invalid">
+          <label for="email">Email</label>
+          <input id="email" type="email" formControlName="email" autocomplete="email" />
+          @if (form.controls.email.touched && form.controls.email.invalid) {
+            <p class="error-campo">Escribe un email válido</p>
+          }
+        </div>
+        <button class="boton boton-verde boton-ancho" type="submit" [disabled]="cargando()">
+          {{ cargando() ? 'Enviando enlace…' : 'Enviar enlace' }}
+        </button>
+      </form>
+
+      <p class="texto-suave" style="margin: 1.25rem 0 0"><a routerLink="/login">Volver a iniciar sesión</a></p>
+    }
+  </div>
+</div>

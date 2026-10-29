@@ -1,0 +1,69 @@
+<section class="portada">
+  <div class="portada-texto">
+    <h1 class="portada-titulo">Adopta o compra un animal a alguien de tu ciudad.</h1>
+    <p class="portada-sub">
+      Mira los perros, gatos y otros animales publicados, envía una solicitud y, cuando la aprueben,
+      recibes el contacto para acordar la entrega.
+    </p>
+    <div class="acciones">
+      <a routerLink="/catalogo" class="boton boton-primario">
+        {{ total() ? 'Ver los ' + total() + ' animales disponibles' : 'Ver animales disponibles' }}
+      </a>
+      @if (!auth.autenticado()) {
+        <a routerLink="/registro" class="boton boton-secundario">Crear cuenta</a>
+      } @else if (auth.rol() === 'VENDEDOR') {
+        <a routerLink="/publicar" class="boton boton-secundario">Publicar un animal</a>
+      }
+    </div>
+  </div>
+
+  <div class="portada-placas" aria-hidden="true">
+    @for (a of recientes(); track a.id; let i = $index) {
+      <a class="placa placa-portada" [class]="'placa placa-portada posicion-' + i" [routerLink]="['/animales', a.id]" tabindex="-1">
+        <div class="placa-foto"><img [src]="a.fotoUrl || sinFoto" alt="" /></div>
+        <div class="placa-cuerpo">
+          <span class="placa-nombre">{{ a.nombre }}</span>
+          <p class="placa-linea">{{ describir(a.especie, a.sexo) }}, {{ edad(a.edadMeses).toLowerCase() }}</p>
+        </div>
+      </a>
+    } @empty {
+      <div class="placa placa-portada posicion-0">
+        <div class="placa-foto"><img [src]="sinFoto" alt="" /></div>
+        <div class="placa-cuerpo">
+          <span class="placa-nombre">Tu próximo compañero</span>
+          <p class="placa-linea">Pronto aparecerá aquí</p>
+        </div>
+      </div>
+    }
+  </div>
+</section>
+
+<section class="pasos" aria-labelledby="pasos-titulo">
+  <h2 id="pasos-titulo">Así funciona</h2>
+  <ol class="pasos-lista">
+    <li>
+      <h3>Busca</h3>
+      <p>Filtra por especie, ciudad y si es adopción o venta. Cada animal muestra su edad, vacunas y quién lo publica.</p>
+    </li>
+    <li>
+      <h3>Envía una solicitud</h3>
+      <p>Cuéntale a quien lo publicó por qué quieres a ese animal. Puedes seguir el estado desde tu cuenta.</p>
+    </li>
+    <li>
+      <h3>Acuerda la entrega</h3>
+      <p>Si te aprueban, los dos reciben un correo con el contacto del otro para coordinar por WhatsApp o email.</p>
+    </li>
+  </ol>
+</section>
+
+<section class="publicar panel">
+  <div>
+    <h2>¿Tienes un animal que necesita casa?</h2>
+    <p class="texto-suave">Publícalo con foto, recibe solicitudes y elige a quién entregarlo. Tu celular solo lo ve la persona que apruebes.</p>
+  </div>
+  @if (auth.rol() === 'VENDEDOR') {
+    <a routerLink="/publicar" class="boton boton-verde">Publicar animal</a>
+  } @else if (!auth.autenticado()) {
+    <a routerLink="/registro" class="boton boton-verde">Crear cuenta para publicar</a>
+  }
+</section>
