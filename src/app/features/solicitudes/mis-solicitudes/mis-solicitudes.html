@@ -1,0 +1,54 @@
+<div class="encabezado">
+  <div>
+    <h1>Mis solicitudes</h1>
+    <p>Aquí ves en qué va cada solicitud. También te avisamos por correo cuando la aprueban.</p>
+  </div>
+  <a routerLink="/catalogo" class="boton boton-secundario">Buscar animales</a>
+</div>
+
+@if (cargando()) {
+  <p class="cargando" role="status">Cargando tus solicitudes…</p>
+} @else if (error()) {
+  <div class="mensaje mensaje-error" role="alert">
+    <p>{{ error() }}</p>
+    <button type="button" class="boton boton-secundario boton-chico" (click)="cargar()">Intentar de nuevo</button>
+  </div>
+} @else if (solicitudes().length === 0) {
+  <div class="vacio">
+    <h2>Aún no has enviado solicitudes</h2>
+    <p>Busca un animal en el catálogo y escríbele a quien lo publicó.</p>
+    <a routerLink="/catalogo" class="boton boton-primario">Ver animales disponibles</a>
+  </div>
+} @else {
+  <ul class="lista-solicitudes">
+    @for (s of ordenadas(); track s.id) {
+      <li class="solicitud" [class.solicitud-pendiente]="s.estado === 'APROBADA'">
+        <div class="solicitud-cabeza">
+          <div>
+            <p class="solicitud-animal"><a [routerLink]="['/animales', s.animalId]">{{ nombreAnimal(s.animalId) }}</a></p>
+            <p class="texto-suave solicitud-quien">Enviada el {{ s.fechaSolicitud | date: 'd/MM/y' }}</p>
+          </div>
+          <app-estado-chip [estado]="s.estado" />
+        </div>
+
+        <blockquote class="solicitud-mensaje">{{ s.mensaje }}</blockquote>
+
+        @switch (s.estado) {
+          @case ('APROBADA') {
+            <p class="solicitud-nota">Te aprobaron el {{ s.fechaDecision | date: 'd/MM/y' }}. Escríbele a quien lo publicó para acordar la entrega.</p>
+            <app-contacto-solicitud [solicitudId]="s.id" [nombreAnimal]="nombreAnimal(s.animalId)" />
+          }
+          @case ('PENDIENTE') {
+            <p class="solicitud-nota texto-suave">Esperando respuesta.</p>
+          }
+          @case ('RECHAZADA') {
+            <p class="solicitud-nota texto-suave">
+              No fue aprobada{{ s.fechaDecision ? ' (' + (s.fechaDecision | date: 'd/MM/y') + ')' : '' }}.
+              <a routerLink="/catalogo">Busca otros animales disponibles</a>.
+            </p>
+          }
+        }
+      </li>
+    }
+  </ul>
+}

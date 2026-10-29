@@ -1,0 +1,124 @@
+<div class="medio">
+  <a [routerLink]="editando() ? '/mis-publicaciones' : '/catalogo'" class="volver">
+    {{ editando() ? 'Volver a mis publicaciones' : 'Volver a los animales' }}
+  </a>
+
+  <h1>{{ editando() ? 'Editar ' + (original()?.nombre ?? 'animal') : 'Publicar un animal' }}</h1>
+
+  @if (cargando()) {
+    <p class="cargando" role="status">Cargando…</p>
+  } @else if (bloqueo()) {
+    <div class="mensaje mensaje-info" role="status">
+      <p>{{ bloqueo() }}</p>
+      <a routerLink="/mis-publicaciones">Ir a mis publicaciones</a>
+    </div>
+  } @else {
+    <form class="formulario panel" [formGroup]="form" (ngSubmit)="guardar()" novalidate>
+      @if (error()) {
+        <div class="mensaje mensaje-error" role="alert">{{ error() }}</div>
+      }
+
+      <fieldset class="grupo">
+        <legend>Foto</legend>
+        <div class="foto-elegir">
+          <img
+            class="foto-previa"
+            [src]="vistaPrevia() ?? original()?.fotoUrl ?? sinFoto"
+            [alt]="vistaPrevia() ? 'Vista previa de la foto elegida' : ''"
+          />
+          <div class="campo">
+            <label for="foto">{{ original()?.fotoUrl ? 'Cambiar la foto' : 'Elegir una foto' }}</label>
+            <input #entradaFoto id="foto" type="file" accept="image/jpeg,image/png,image/webp" (change)="elegirFoto($event)" aria-describedby="foto-ayuda" />
+            <p class="ayuda" id="foto-ayuda">JPG, PNG o WEBP de hasta 5 MB. Una foto con buena luz ayuda a que lo encuentren.</p>
+            @if (errorFoto()) {
+              <p class="error-campo" role="alert">{{ errorFoto() }}</p>
+            }
+            @if (foto()) {
+              <button type="button" class="boton boton-secundario boton-chico" (click)="quitarFoto(entradaFoto)">Quitar foto elegida</button>
+            }
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset class="grupo">
+        <legend>Sobre el animal</legend>
+        <div class="campo" [class.invalido]="invalido('nombre')">
+          <label for="nombre">Nombre</label>
+          <input id="nombre" type="text" formControlName="nombre" />
+          @if (invalido('nombre')) {
+            <p class="error-campo">{{ erroresServidor()['nombre'] ?? 'Escribe el nombre (máximo 100 caracteres)' }}</p>
+          }
+        </div>
+        <div class="fila-campos">
+          <div class="campo">
+            <label for="especie">Especie</label>
+            <select id="especie" formControlName="especie">
+              <option value="PERRO">Perro</option>
+              <option value="GATO">Gato</option>
+              <option value="OTRO">Otra especie</option>
+            </select>
+          </div>
+          <div class="campo">
+            <label for="sexo">Sexo</label>
+            <select id="sexo" formControlName="sexo">
+              <option value="MACHO">Macho</option>
+              <option value="HEMBRA">Hembra</option>
+            </select>
+          </div>
+        </div>
+        <div class="fila-campos">
+          <div class="campo" [class.invalido]="invalido('raza')">
+            <label for="raza">Raza <span class="texto-suave">(opcional)</span></label>
+            <input id="raza" type="text" formControlName="raza" placeholder="Ej. Criollo" />
+          </div>
+          <div class="campo" [class.invalido]="invalido('edadMeses')">
+            <label for="edadMeses">Edad en meses <span class="texto-suave">(opcional)</span></label>
+            <input id="edadMeses" type="number" inputmode="numeric" min="0" max="600" step="1" formControlName="edadMeses" placeholder="Ej. 14" />
+            @if (invalido('edadMeses')) {
+              <p class="error-campo">{{ erroresServidor()['edadMeses'] ?? 'Escribe un número entero entre 0 y 600' }}</p>
+            }
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset class="grupo">
+        <legend>Salud</legend>
+        <div class="casillas">
+          <label class="casilla"><input type="checkbox" formControlName="vacunado" /> Tiene sus vacunas</label>
+          <label class="casilla"><input type="checkbox" formControlName="esterilizado" /> Está esterilizado</label>
+        </div>
+      </fieldset>
+
+      <fieldset class="grupo">
+        <legend>Publicación</legend>
+        <div class="campo">
+          <span class="etiqueta" id="tipo-etiqueta">Tipo de publicación</span>
+          <div class="casillas" role="radiogroup" aria-labelledby="tipo-etiqueta">
+            <label class="casilla"><input type="radio" formControlName="tipo" value="ADOPCION" /> Adopción</label>
+            <label class="casilla"><input type="radio" formControlName="tipo" value="VENTA" /> Venta</label>
+          </div>
+        </div>
+        <div class="campo" [class.invalido]="invalido('ciudad')">
+          <label for="ciudad">Ciudad donde está</label>
+          <input id="ciudad" type="text" formControlName="ciudad" placeholder="Ej. Fusagasugá" />
+        </div>
+        <div class="campo" [class.invalido]="invalido('descripcion')">
+          <label for="descripcion">Descripción <span class="texto-suave">(opcional)</span></label>
+          <textarea id="descripcion" rows="5" formControlName="descripcion" maxlength="1000" placeholder="Carácter, cuidados que necesita, con quién se lleva bien…"></textarea>
+          <p class="ayuda">{{ form.controls.descripcion.value.length }} de 1000 caracteres</p>
+        </div>
+      </fieldset>
+
+      <div class="acciones">
+        <button type="submit" class="boton boton-primario" [disabled]="guardando()">
+          @if (guardando()) {
+            {{ foto() ? 'Subiendo foto y guardando…' : 'Guardando…' }}
+          } @else {
+            {{ editando() ? 'Guardar cambios' : 'Publicar animal' }}
+          }
+        </button>
+        <a [routerLink]="editando() ? '/mis-publicaciones' : '/catalogo'" class="boton boton-secundario">Cancelar</a>
+      </div>
+    </form>
+  }
+</div>

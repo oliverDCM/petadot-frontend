@@ -1,0 +1,62 @@
+.barra-filtros {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.pestanas { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+
+.pestana {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.45rem 0.95rem;
+  border-radius: 999px;
+  border: 1.5px solid var(--borde);
+  background: var(--superficie);
+  color: var(--tinta);
+  font: inherit;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+.pestana-activa { background: var(--verde); border-color: var(--verde); color: #fff; }
+.pestana-cuenta { font-weight: 700; }
+
+.filtro-animal { min-width: 13rem; }
+
+.lista-solicitudes { list-style: none; margin: 0; padding: 0; display: grid; gap: 1rem; }
+
+.solicitud {
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  border-radius: 18px;
+  padding: 1.25rem 1.4rem;
+}
+.solicitud-pendiente { border-left: 6px solid var(--girasol); }
+
+.solicitud-cabeza { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; }
+
+.solicitud-animal {
+  margin: 0;
+  font-family: var(--fuente-titulo);
+  font-weight: 800;
+  font-size: 1.35rem;
+  letter-spacing: -0.02em;
+
+  a { color: var(--verde-hondo); text-decoration: none; }
+}
+
+.solicitud-quien { margin: 0.15rem 0 0; font-size: 0.95rem; }
+
+.solicitud-mensaje {
+  margin: 0.9rem 0 1rem;
+  padding: 0 0 0 1rem;
+  border-left: 3px solid var(--verde-claro);
+  max-width: 65ch;
+  white-space: pre-line;
+}
+
+.solicitud-nota { margin: 0; font-size: 0.95rem; }

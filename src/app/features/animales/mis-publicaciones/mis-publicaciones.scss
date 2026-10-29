@@ -1,0 +1,48 @@
+.lista-publicaciones {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  border-radius: 18px;
+}
+
+.fila-publicacion {
+  display: grid;
+  grid-template-columns: 5.5rem minmax(0, 1fr) auto;
+  gap: 1.1rem;
+  align-items: center;
+  padding: 1rem 1.25rem;
+
+  & + & { border-top: 1px solid var(--borde); }
+}
+
+.miniatura {
+  width: 5.5rem;
+  height: 5.5rem;
+  border-radius: 14px;
+  object-fit: cover;
+  background: var(--verde-claro);
+}
+
+.fila-titulo { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; }
+
+.fila-nombre {
+  font-family: var(--fuente-titulo);
+  font-weight: 800;
+  font-size: 1.35rem;
+  letter-spacing: -0.02em;
+  color: var(--verde-hondo);
+  text-decoration: none;
+}
+
+.fila-meta, .fila-pendientes { margin: 0.2rem 0 0; font-size: 0.95rem; }
+.fila-pendientes a { font-weight: 700; }
+
+.fila-acciones { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 0.5rem; }
+
+@media (max-width: 760px) {
+  .fila-publicacion { grid-template-columns: 4.5rem minmax(0, 1fr); }
+  .miniatura { width: 4.5rem; height: 4.5rem; }
+  .fila-acciones { grid-column: 1 / -1; justify-content: flex-start; }
+}

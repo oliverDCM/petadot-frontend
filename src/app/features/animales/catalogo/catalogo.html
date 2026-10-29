@@ -1,0 +1,79 @@
+<div class="encabezado">
+  <div>
+    <h1>Animales disponibles</h1>
+    @if (!cargando() && !error()) {
+      <p>
+        {{ animales().length === 1 ? '1 animal' : animales().length + ' animales' }}
+        {{ filtrosActivos() ? 'con estos filtros' : 'esperando una casa' }}
+      </p>
+    }
+  </div>
+</div>
+
+<form class="filtros panel" (ngSubmit)="aplicarFiltros()" role="search" aria-label="Filtrar animales">
+  <div class="campo">
+    <label for="f-especie">Especie</label>
+    <select id="f-especie" name="especie" [ngModel]="especieElegida()" (ngModelChange)="especieElegida.set($event)">
+      <option value="">Todas</option>
+      <option value="PERRO">Perros</option>
+      <option value="GATO">Gatos</option>
+      <option value="OTRO">Otras especies</option>
+    </select>
+  </div>
+  <div class="campo">
+    <label for="f-tipo">Publicación</label>
+    <select id="f-tipo" name="tipo" [ngModel]="tipoElegido()" (ngModelChange)="tipoElegido.set($event)">
+      <option value="">Adopción y venta</option>
+      <option value="ADOPCION">Solo adopción</option>
+      <option value="VENTA">Solo venta</option>
+    </select>
+  </div>
+  <div class="campo">
+    <label for="f-ciudad">Ciudad</label>
+    <input id="f-ciudad" name="ciudad" type="search" placeholder="Ej. Fusagasugá" [ngModel]="ciudadEscrita()" (ngModelChange)="ciudadEscrita.set($event)" />
+  </div>
+  <div class="acciones filtros-acciones">
+    <button type="submit" class="boton boton-verde">Filtrar</button>
+    @if (filtrosActivos()) {
+      <button type="button" class="boton boton-secundario" (click)="limpiarFiltros()">Quitar filtros</button>
+    }
+  </div>
+</form>
+
+@if (cargando()) {
+  <p class="cargando" role="status">Cargando animales…</p>
+} @else if (error()) {
+  <div class="mensaje mensaje-error" role="alert">
+    <p>{{ error() }}</p>
+    <button type="button" class="boton boton-secundario boton-chico" (click)="reintentar()">Intentar de nuevo</button>
+  </div>
+} @else if (animales().length === 0) {
+  <div class="vacio">
+    @if (filtrosActivos()) {
+      <h2>No hay animales con estos filtros</h2>
+      <p>Prueba con otra ciudad o quita algún filtro.</p>
+      <button type="button" class="boton boton-secundario" (click)="limpiarFiltros()">Quitar filtros</button>
+    } @else {
+      <h2>Todavía no hay animales publicados</h2>
+      <p>Cuando alguien publique uno, aparecerá aquí.</p>
+    }
+  </div>
+} @else {
+  <div class="rejilla-animales">
+    @for (a of visibles(); track a.id) {
+      <app-tarjeta-animal [animal]="a" />
+    }
+  </div>
+
+  @if (totalPaginas() > 1) {
+    <nav class="paginacion" aria-label="Páginas del catálogo">
+      <button type="button" class="boton boton-secundario boton-chico" [disabled]="paginaActual() === 1" (click)="irAPagina(paginaActual() - 1)">
+        Anterior
+      </button>
+      <span>Página {{ paginaActual() }} de {{ totalPaginas() }}</span>
+      <button type="button" class="boton boton-secundario boton-chico" [disabled]="paginaActual() === totalPaginas()" (click)="irAPagina(paginaActual() + 1)">
+        Siguiente
+      </button>
+    </nav>
+  }
+}
