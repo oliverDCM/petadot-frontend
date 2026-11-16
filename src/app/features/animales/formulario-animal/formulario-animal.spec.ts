@@ -27,7 +27,7 @@ describe('validarImagen', () => {
 
 const existente: AnimalDetalle = {
   id: 7, nombre: 'Lupe', especie: 'PERRO', raza: 'Criolla', edadMeses: 14, sexo: 'HEMBRA', descripcion: 'Juguetona',
-  fotoUrl: 'https://res.cloudinary.com/x/lupe.jpg', ciudad: 'Fusagasugá', vacunado: true, esterilizado: false,
+  fotoUrl: 'https://petadopt-fotos.s3.us-east-1.amazonaws.com/petadopt/animales/lupe.jpg', ciudad: 'Fusagasugá', vacunado: true, esterilizado: false,
   tipo: 'ADOPCION', estado: 'DISPONIBLE', vendedorId: 1, fechaPublicacion: '2026-10-01T10:00:00',
   vendedorNombre: 'Carlos', vendedorCiudad: 'Fusagasugá',
 };
@@ -119,7 +119,7 @@ describe('FormularioAnimal', () => {
     expect(URL.revokeObjectURL).toHaveBeenCalled();
   });
 
-  it('si Cloudinary falla explica que no se pudo subir la foto', () => {
+  it('si el almacenamiento de fotos falla explica que no se pudo subir la foto', () => {
     const { fixture, el } = crear();
     escribir(el, '#nombre', 'Rocky');
     el.querySelector('form')!.dispatchEvent(new Event('submit'));

@@ -1,0 +1,189 @@
+# Pipeline del frontend de PetAdopt
+#
+#   develop / preproduccion / main / pull requests  ->  pruebas con cobertura + build + SonarCloud
+#   main (push)                                      ->  además: imagen Docker en GHCR y despliegue en AWS EC2
+#
+# Secretos del repositorio (Settings > Secrets and variables > Actions > Secrets):
+#   SONAR_TOKEN   token de SonarCloud
+#   EC2_HOST      IP elástica (o DNS) del servidor EC2
+#   EC2_USER      usuario SSH del servidor (ubuntu)
+#   EC2_SSH_KEY   contenido completo del archivo .pem del par de llaves
+# Variables del repositorio (misma pantalla, pestaña Variables):
+#   SONAR_ORGANIZATION   clave de la organización en SonarCloud
+#   SONAR_PROJECT_KEY    clave del proyecto en SonarCloud
+name: Frontend CI/CD
+
+on:
+  push:
+    branches: [develop, preproduccion, main]
+  pull_request:
+    branches: [develop, preproduccion, main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: frontend-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NG_CLI_ANALYTICS: "false" # evita que Angular CLI pregunte por analíticas en el pipeline
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # 1. Pruebas (Vitest + cobertura), build de producción y análisis en SonarCloud
+  # ---------------------------------------------------------------------------
+  build-test:
+    name: Probar, compilar y analizar
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+    steps:
+      - name: Descargar el código
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # SonarCloud usa el historial completo para saber qué código es nuevo
+
+      - name: Instalar Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci --no-audit --no-fund
+
+      - name: Ejecutar las pruebas con cobertura
+        run: npm run test:ci
+
+      - name: Compilar para producción
+        run: npm run build -- --configuration production
+
+      - name: Guardar reporte de cobertura
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cobertura-frontend
+          path: coverage/
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Análisis en SonarCloud
+        # Se omite si el secreto no existe (por ejemplo, en pull requests desde un fork)
+        if: env.SONAR_TOKEN != ''
+        uses: SonarSource/sonarqube-scan-action@v5
+        env:
+          SONAR_HOST_URL: https://sonarcloud.io
+        with:
+          # El resto de la configuración (fuentes, pruebas, lcov) está en sonar-project.properties
+          args: >-
+            -Dsonar.organization=${{ vars.SONAR_ORGANIZATION }}
+            -Dsonar.projectKey=${{ vars.SONAR_PROJECT_KEY }}
+            -Dsonar.qualitygate.wait=true
+
+  # ---------------------------------------------------------------------------
+  # 2. Construir la imagen Docker (nginx) y publicarla en GitHub Container Registry
+  # ---------------------------------------------------------------------------
+  imagen:
+    name: Publicar imagen Docker
+    needs: build-test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Descargar el código
+        uses: actions/checkout@v4
+
+      - name: Nombre de la imagen (GHCR exige minúsculas)
+        run: echo "IMAGEN=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/petadopt-frontend" >> "$GITHUB_ENV"
+
+      - name: Preparar Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Iniciar sesión en GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Construir y publicar
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ env.IMAGEN }}:latest
+            ${{ env.IMAGEN }}:${{ github.sha }}
+          labels: |
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ---------------------------------------------------------------------------
+  # 3. Desplegar en el servidor EC2 de AWS
+  # ---------------------------------------------------------------------------
+  desplegar:
+    name: Desplegar en AWS EC2
+    needs: imagen
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      packages: read
+    env:
+      EC2_HOST: ${{ secrets.EC2_HOST }}
+      EC2_USER: ${{ secrets.EC2_USER }}
+    steps:
+      - name: Preparar la llave SSH
+        env:
+          EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "$EC2_SSH_KEY" > ~/.ssh/ec2.pem
+          chmod 600 ~/.ssh/ec2.pem
+          ssh-keyscan -H "$EC2_HOST" >> ~/.ssh/known_hosts
+
+      - name: Iniciar sesión en GHCR desde el servidor
+        # El token va por la entrada estándar: no queda en el historial ni en la lista de procesos
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | ssh -i ~/.ssh/ec2.pem "$EC2_USER@$EC2_HOST" \
+            "docker login ghcr.io -u '${{ github.actor }}' --password-stdin"
+
+      - name: Actualizar el frontend
+        run: |
+          ssh -i ~/.ssh/ec2.pem "$EC2_USER@$EC2_HOST" 'bash -s' <<'EOF'
+          set -euo pipefail
+          cd ~/petadopt
+          # El docker-compose de producción lo copia el pipeline del backend (despliega el backend primero)
+          test -f docker-compose.prod.yml || { echo "Falta docker-compose.prod.yml: despliega primero el backend"; exit 1; }
+          test -f .env || { echo "Falta ~/petadopt/.env en el servidor (ver DESPLIEGUE-AWS.md)"; exit 1; }
+          docker compose -f docker-compose.prod.yml pull frontend
+          if ! docker compose -f docker-compose.prod.yml up -d --wait --wait-timeout 180 frontend; then
+            echo "El frontend no quedó sano. Últimas líneas del log:"
+            docker compose -f docker-compose.prod.yml logs --tail 80 frontend
+            exit 1
+          fi
+          docker compose -f docker-compose.prod.yml ps
+          docker image prune -f
+          EOF
+
+      - name: Cerrar sesión en GHCR
+        if: always()
+        run: ssh -i ~/.ssh/ec2.pem "$EC2_USER@$EC2_HOST" 'docker logout ghcr.io' || true
+
+      - name: Comprobar que la app responde
+        run: |
+          for intento in $(seq 1 12); do
+            if curl -fsS "http://$EC2_HOST/" > /dev/null && curl -fsS "http://$EC2_HOST/api/animales" > /dev/null; then
+              echo "App desplegada: http://$EC2_HOST/"; exit 0
+            fi
+            echo "Intento $intento: todavía no responde, esperando 10 s"; sleep 10
+          done
+          echo "La app no respondió en http://$EC2_HOST/"; exit 1

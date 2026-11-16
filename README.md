@@ -62,3 +62,30 @@ src/app/
 | `/usuarios/:id/perfil` | Vendedor | HU-FE-15 |
 | `/solicitudes/mias` | Adoptante | HU-FE-14, HU-FE-20 |
 | `/perfil` | Con sesión | Perfil propio |
+
+## Pruebas end to end (Playwright)
+
+Prueban la aplicación completa en un navegador real: frontend, backend, PostgreSQL, Mailpit y Amazon S3.
+
+```powershell
+# Una sola vez: descargar el navegador de Playwright
+npx playwright install chromium
+
+# Levantar todo (en la carpeta petadopt) y correr las E2E (en la carpeta del frontend)
+docker compose up -d
+npm run e2e            # todas, en consola
+npm run e2e:ui         # modo visual: ves cada paso en el navegador
+npm run e2e:reporte    # abre el reporte HTML de la última ejecución
+```
+
+| Archivo | Qué prueba |
+|---|---|
+| `e2e/navegacion.e2e.ts` | Portada, catálogo, 404 y rutas protegidas (también en celular) |
+| `e2e/autenticacion.e2e.ts` | Registro, login, contraseña equivocada, email repetido, permisos por rol |
+| `e2e/publicacion.e2e.ts` | Publicar con foto (S3), ver en el catálogo, editar, retirar, validaciones |
+| `e2e/adopcion.e2e.ts` | Solicitud → aprobación (con rechazo automático de la otra) → contacto → correos → entrega |
+| `e2e/recuperacion.e2e.ts` | Olvidé mi contraseña → enlace por correo (Mailpit) → nueva contraseña → enlace de un solo uso |
+
+Cada prueba crea sus propios usuarios y animales con nombres únicos, así que se pueden repetir sin limpiar la base de datos.
+Si una falla, el reporte trae una captura de pantalla, un video y la traza paso a paso (`npx playwright show-trace ...`).
+La recuperación de contraseña está limitada a 3 pedidos por hora por IP: para correr las E2E varias veces seguidas, pon `RECUPERACION_MAX_INTENTOS=100` en el `.env` y ejecuta `docker compose up -d backend`.

@@ -21,3 +21,9 @@ npm-debug.log*
 
 # Reportes de pruebas
 coverage/
+
+# Pruebas E2E: no hacen falta para construir la imagen
+e2e
+playwright.config.ts
+test-results
+playwright-report
