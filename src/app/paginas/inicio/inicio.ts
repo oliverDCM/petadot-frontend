@@ -24,10 +24,11 @@ export class Inicio {
   protected readonly edad = textoEdad;
 
   constructor() {
-    this.animalService.listar().subscribe({
-      next: (lista) => {
-        this.recientes.set(lista.slice(0, 3));
-        this.total.set(lista.length);
+    // Solo se piden los tres más recientes; el total llega aparte, sin traer todo el catálogo
+    this.animalService.listar({ tamano: 3 }).subscribe({
+      next: (resultado) => {
+        this.recientes.set(resultado.animales);
+        this.total.set(resultado.total);
       },
       error: () => this.total.set(null),
     });

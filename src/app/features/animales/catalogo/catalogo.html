@@ -3,7 +3,7 @@
     <h1>Animales disponibles</h1>
     @if (!cargando() && !error()) {
       <p>
-        {{ animales().length === 1 ? '1 animal' : animales().length + ' animales' }}
+        {{ total() === 1 ? '1 animal' : total() + ' animales' }}
         {{ filtrosActivos() ? 'con estos filtros' : 'esperando una casa' }}
       </p>
     }
@@ -47,7 +47,7 @@
     <p>{{ error() }}</p>
     <button type="button" class="boton boton-secundario boton-chico" (click)="reintentar()">Intentar de nuevo</button>
   </div>
-} @else if (animales().length === 0) {
+} @else if (total() === 0) {
   <div class="vacio">
     @if (filtrosActivos()) {
       <h2>No hay animales con estos filtros</h2>
@@ -60,7 +60,7 @@
   </div>
 } @else {
   <div class="rejilla-animales">
-    @for (a of visibles(); track a.id) {
+    @for (a of animales(); track a.id) {
       <app-tarjeta-animal [animal]="a" />
     }
   </div>

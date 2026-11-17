@@ -85,6 +85,7 @@ npm run e2e:reporte    # abre el reporte HTML de la última ejecución
 | `e2e/publicacion.e2e.ts` | Publicar con foto (S3), ver en el catálogo, editar, retirar, validaciones |
 | `e2e/adopcion.e2e.ts` | Solicitud → aprobación (con rechazo automático de la otra) → contacto → correos → entrega |
 | `e2e/recuperacion.e2e.ts` | Olvidé mi contraseña → enlace por correo (Mailpit) → nueva contraseña → enlace de un solo uso |
+| `e2e/integridad.e2e.ts` | Sin interfaz, contra la API real: decisiones simultáneas, solicitudes al liberar o retirar un animal, paginación del catálogo, fotos por enlace externo y contraseñas largas |
 
 Cada prueba crea sus propios usuarios y animales con nombres únicos, así que se pueden repetir sin limpiar la base de datos.
 Si una falla, el reporte trae una captura de pantalla, un video y la traza paso a paso (`npx playwright show-trace ...`).

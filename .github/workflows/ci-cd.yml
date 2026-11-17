@@ -11,6 +11,7 @@
 # Variables del repositorio (misma pantalla, pestaña Variables):
 #   SONAR_ORGANIZATION   clave de la organización en SonarCloud
 #   SONAR_PROJECT_KEY    clave del proyecto en SonarCloud
+#   APP_URL              (opcional) dirección pública con dominio, p. ej. https://tudominio.com
 name: Frontend CI/CD
 
 on:
@@ -20,6 +21,8 @@ on:
     branches: [develop, preproduccion, main]
   workflow_dispatch:
 
+# Las acciones van fijadas por SHA (el comentario indica la versión): una etiqueta como v4 se puede mover
+# a otro código sin aviso; un SHA no.
 permissions:
   contents: read
 
@@ -42,12 +45,12 @@ jobs:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
     steps:
       - name: Descargar el código
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           fetch-depth: 0 # SonarCloud usa el historial completo para saber qué código es nuevo
 
       - name: Instalar Node 22
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: "22"
           cache: npm
@@ -63,7 +66,7 @@ jobs:
 
       - name: Guardar reporte de cobertura
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: cobertura-frontend
           path: coverage/
@@ -73,7 +76,7 @@ jobs:
       - name: Análisis en SonarCloud
         # Se omite si el secreto no existe (por ejemplo, en pull requests desde un fork)
         if: env.SONAR_TOKEN != ''
-        uses: SonarSource/sonarqube-scan-action@v5
+        uses: SonarSource/sonarqube-scan-action@2f77a1ec69fb1d595b06f35ab27e97605bdef703 # v5
         env:
           SONAR_HOST_URL: https://sonarcloud.io
         with:
@@ -97,23 +100,23 @@ jobs:
       packages: write
     steps:
       - name: Descargar el código
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
       - name: Nombre de la imagen (GHCR exige minúsculas)
         run: echo "IMAGEN=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/petadopt-frontend" >> "$GITHUB_ENV"
 
       - name: Preparar Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
 
       - name: Iniciar sesión en GHCR
-        uses: docker/login-action@v3
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Construir y publicar
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
         with:
           context: .
           push: true
@@ -165,7 +168,7 @@ jobs:
           test -f docker-compose.prod.yml || { echo "Falta docker-compose.prod.yml: despliega primero el backend"; exit 1; }
           test -f .env || { echo "Falta ~/petadopt/.env en el servidor (ver DESPLIEGUE-AWS.md)"; exit 1; }
           docker compose -f docker-compose.prod.yml pull frontend
-          if ! docker compose -f docker-compose.prod.yml up -d --wait --wait-timeout 180 frontend; then
+          if ! docker compose -f docker-compose.prod.yml up -d --wait --wait-timeout 180 frontend caddy; then
             echo "El frontend no quedó sano. Últimas líneas del log:"
             docker compose -f docker-compose.prod.yml logs --tail 80 frontend
             exit 1
@@ -179,11 +182,14 @@ jobs:
         run: ssh -i ~/.ssh/ec2.pem "$EC2_USER@$EC2_HOST" 'docker logout ghcr.io' || true
 
       - name: Comprobar que la app responde
+        env:
+          # Variable APP_URL del repositorio (https://tudominio.com); si no existe, se prueba por la IP
+          APP_URL: ${{ vars.APP_URL || format('http://{0}', secrets.EC2_HOST) }}
         run: |
           for intento in $(seq 1 12); do
-            if curl -fsS "http://$EC2_HOST/" > /dev/null && curl -fsS "http://$EC2_HOST/api/animales" > /dev/null; then
-              echo "App desplegada: http://$EC2_HOST/"; exit 0
+            if curl -fsS "$APP_URL/" > /dev/null && curl -fsS "$APP_URL/api/animales" > /dev/null; then
+              echo "App desplegada: $APP_URL/"; exit 0
             fi
             echo "Intento $intento: todavía no responde, esperando 10 s"; sleep 10
           done
-          echo "La app no respondió en http://$EC2_HOST/"; exit 1
+          echo "La app no respondió en $APP_URL/"; exit 1

@@ -46,6 +46,16 @@ export interface FiltrosCatalogo {
   especie?: Especie | null;
   tipo?: TipoPublicacion | null;
   ciudad?: string | null;
+  /** Número de página, desde 0. */
+  pagina?: number;
+  /** Animales por página (el backend admite hasta 100). */
+  tamano?: number;
+}
+
+/** Una página del catálogo y el total de animales que cumplen los filtros (sumando todas las páginas). */
+export interface PaginaAnimales {
+  animales: Animal[];
+  total: number;
 }
 
 export interface Solicitud {

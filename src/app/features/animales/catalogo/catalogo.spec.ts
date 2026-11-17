@@ -1,7 +1,7 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { provideRouter, Router } from '@angular/router';
 import { Animal } from '../../../core/modelos';
 import { Catalogo } from './catalogo';
 
@@ -34,15 +34,38 @@ describe('Catalogo', () => {
     expect(req.request.params.get('especie')).toBe('GATO');
     expect(req.request.params.has('tipo')).toBe(false);
     expect(req.request.params.get('ciudad')).toBe('Fusa');
+    expect(req.request.params.has('pagina')).toBe(false); // la primera página es la de por defecto
+    expect(req.request.params.get('tamano')).toBe('12');
   });
 
-  it('muestra 12 animales por página', () => {
+  it('pide al backend solo la página de la URL y muestra el total que informa la cabecera', () => {
     const f = crear({ pagina: '2' });
-    http.expectOne((r) => r.url.endsWith('/animales')).flush(Array.from({ length: 14 }, (_, i) => animal(i + 1)));
+    const req = http.expectOne((r) => r.url.endsWith('/animales'));
+    expect(req.request.params.get('pagina')).toBe('1'); // el backend cuenta las páginas desde 0
+    req.flush([animal(13), animal(14)], { headers: { 'X-Total-Count': '14' } });
     f.detectChanges();
     const el = f.nativeElement as HTMLElement;
     expect(el.querySelectorAll('app-tarjeta-animal').length).toBe(2);
+    expect(el.textContent).toContain('14 animales');
     expect(el.textContent).toContain('Página 2 de 2');
+  });
+
+  it('con una sola página no muestra la paginación', () => {
+    const f = crear();
+    http.expectOne((r) => r.url.endsWith('/animales')).flush([animal(1)], { headers: { 'X-Total-Count': '1' } });
+    f.detectChanges();
+    const el = f.nativeElement as HTMLElement;
+    expect(el.textContent).toContain('1 animal esperando una casa');
+    expect(el.querySelector('.paginacion')).toBeNull();
+  });
+
+  it('si la URL pide una página que ya no existe va a la última', () => {
+    const f = crear({ pagina: '9' });
+    const router = TestBed.inject(Router);
+    const navegar = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+    http.expectOne((r) => r.url.endsWith('/animales')).flush([], { headers: { 'X-Total-Count': '14' } });
+    f.detectChanges();
+    expect(navegar).toHaveBeenCalledWith([], { queryParams: { pagina: 2 }, queryParamsHandling: 'merge' });
   });
 
   it('con filtros y sin resultados ofrece quitarlos', () => {

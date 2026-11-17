@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { camposConError, estadoHttp, mensajeDeError, SIN_CONEXION } from './errores';
+import { camposConError, DEMASIADAS_PETICIONES, estadoHttp, mensajeDeError, SIN_CONEXION } from './errores';
 
 describe('errores', () => {
   it('usa el mensaje del backend (formato HU-BE-17)', () => {
@@ -15,6 +15,13 @@ describe('errores', () => {
 
   it('explica cuando no hay conexión', () => {
     expect(mensajeDeError(new HttpErrorResponse({ status: 0 }), 'otro')).toBe(SIN_CONEXION);
+  });
+
+  it('explica el límite de peticiones (429) aunque la respuesta no venga de la API', () => {
+    const deNginx = new HttpErrorResponse({ status: 429, error: '<html>429 Too Many Requests</html>' });
+    expect(mensajeDeError(deNginx, 'otro')).toBe(DEMASIADAS_PETICIONES);
+    const deLaApi = new HttpErrorResponse({ status: 429, error: { mensaje: 'Demasiados intentos fallidos' } });
+    expect(mensajeDeError(deLaApi, 'otro')).toBe('Demasiados intentos fallidos');
   });
 
   it('usa el texto por defecto si no hay mensaje', () => {

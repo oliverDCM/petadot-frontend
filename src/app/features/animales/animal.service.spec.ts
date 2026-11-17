@@ -29,6 +29,26 @@ describe('AnimalService', () => {
     expect(req.request.params.get('especie')).toBe('GATO');
     expect(req.request.params.has('tipo')).toBe(false);
     expect(req.request.params.get('ciudad')).toBe('bogotá');
+    expect(req.request.params.has('pagina')).toBe(false);
+    expect(req.request.params.has('tamano')).toBe(false);
+    req.flush([]);
+  });
+
+  it('pide la página indicada y lee el total de la cabecera X-Total-Count', () => {
+    let resultado: { animales: unknown[]; total: number } | undefined;
+    servicio.listar({ pagina: 2, tamano: 12 }).subscribe((r) => (resultado = r));
+    const req = http.expectOne((r) => r.url === api);
+    expect(req.request.params.get('pagina')).toBe('2');
+    expect(req.request.params.get('tamano')).toBe('12');
+    req.flush([{ id: 30 }, { id: 29 }], { headers: { 'X-Total-Count': '26' } });
+    expect(resultado).toEqual({ animales: [{ id: 30 }, { id: 29 }], total: 26 });
+  });
+
+  it('si la respuesta no trae la cabecera usa la cantidad recibida como total', () => {
+    let total = -1;
+    servicio.listar().subscribe((r) => (total = r.total));
+    http.expectOne((r) => r.url === api).flush([{ id: 1 }, { id: 2 }, { id: 3 }]);
+    expect(total).toBe(3);
   });
 
   it('publica en JSON sin foto y en multipart con foto', () => {

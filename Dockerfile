@@ -19,6 +19,7 @@ FROM nginxinc/nginx-unprivileged:1.27-alpine
 ARG APP_NAME=fronet-petadot
 
 COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY proxy-backend.inc /etc/nginx/conf.d/proxy-backend.inc
 COPY --from=build /app/dist/${APP_NAME}/browser /usr/share/nginx/html
 
 EXPOSE 8080

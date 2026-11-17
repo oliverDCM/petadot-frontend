@@ -1,6 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { ErrorApi } from './modelos';
 
+export const DEMASIADAS_PETICIONES = 'Hiciste demasiados intentos seguidos. Espera un momento y vuelve a intentarlo.';
 export const SIN_CONEXION = 'No se pudo conectar con el servidor. Revisa tu conexión e intenta de nuevo.';
 
 function cuerpoApi(e: unknown): Partial<ErrorApi> | null {
@@ -17,7 +18,11 @@ export function mensajeDeError(e: unknown, porDefecto: string): string {
   }
   const cuerpo = cuerpoApi(e);
   const mensaje = cuerpo?.mensaje ?? cuerpo?.error;
-  return typeof mensaje === 'string' && mensaje.trim() ? mensaje : porDefecto;
+  if (typeof mensaje === 'string' && mensaje.trim()) {
+    return mensaje;
+  }
+  // El límite de peticiones de nginx responde 429 sin el formato de error de la API
+  return e instanceof HttpErrorResponse && e.status === 429 ? DEMASIADAS_PETICIONES : porDefecto;
 }
 
 /** Errores por campo que devuelve el backend en un 400 de validación. */

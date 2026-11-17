@@ -11,11 +11,13 @@ describe('Páginas', () => {
     TestBed.configureTestingModule({ providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting()] });
   });
 
-  it('la portada muestra los 3 animales más recientes y el total', () => {
+  it('la portada pide solo los 3 animales más recientes y muestra el total del catálogo', () => {
     const fixture = TestBed.createComponent(Inicio);
     fixture.detectChanges();
-    const animales = [1, 2, 3, 4].map((id) => ({ id, nombre: `Animal ${id}`, especie: 'PERRO', sexo: 'MACHO', edadMeses: 5, fotoUrl: null }));
-    TestBed.inject(HttpTestingController).expectOne((r) => r.url.endsWith('/animales')).flush(animales);
+    const animales = [4, 3, 2].map((id) => ({ id, nombre: `Animal ${id}`, especie: 'PERRO', sexo: 'MACHO', edadMeses: 5, fotoUrl: null }));
+    const req = TestBed.inject(HttpTestingController).expectOne((r) => r.url.endsWith('/animales'));
+    expect(req.request.params.get('tamano')).toBe('3');
+    req.flush(animales, { headers: { 'X-Total-Count': '4' } });
     fixture.detectChanges();
     const el = fixture.nativeElement as HTMLElement;
     expect(el.querySelectorAll('.placa-portada').length).toBe(3);

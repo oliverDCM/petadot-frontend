@@ -26,7 +26,10 @@ export class Catalogo {
   readonly ciudad = input<string>();
   readonly pagina = input<string>();
 
+  /** Solo los animales de la página actual: el filtrado y la paginación los hace el backend. */
   protected animales = signal<Animal[]>([]);
+  /** Total de animales que cumplen los filtros, sumando todas las páginas. */
+  protected total = signal(0);
   protected cargando = signal(true);
   protected error = signal<string | null>(null);
 
@@ -36,14 +39,11 @@ export class Catalogo {
   protected ciudadEscrita = signal('');
 
   protected readonly filtrosActivos = computed(() => !!(this.especieUrl() || this.tipoUrl() || this.ciudadUrl()));
-  protected readonly totalPaginas = computed(() => Math.max(1, Math.ceil(this.animales().length / POR_PAGINA)));
+  protected readonly totalPaginas = computed(() => Math.max(1, Math.ceil(this.total() / POR_PAGINA)));
+  /** Página pedida en la URL (desde 1). */
   protected readonly paginaActual = computed(() => {
     const n = Number(this.pagina());
-    return Number.isInteger(n) && n >= 1 ? Math.min(n, this.totalPaginas()) : 1;
-  });
-  protected readonly visibles = computed(() => {
-    const inicio = (this.paginaActual() - 1) * POR_PAGINA;
-    return this.animales().slice(inicio, inicio + POR_PAGINA);
+    return Number.isInteger(n) && n >= 1 ? n : 1;
   });
 
   private readonly especieUrl = computed(() => (ESPECIES.includes(this.especie() as Especie) ? (this.especie() as Especie) : null));
@@ -51,14 +51,15 @@ export class Catalogo {
   private readonly ciudadUrl = computed(() => this.ciudad()?.trim() || null);
 
   constructor() {
-    // Cada vez que cambian los filtros de la URL se vuelve a consultar al backend
+    // Cada vez que cambian los filtros o la página de la URL se vuelve a consultar al backend
     effect(() => {
       const filtros = { especie: this.especieUrl(), tipo: this.tipoUrl(), ciudad: this.ciudadUrl() };
+      const pagina = this.paginaActual();
       untracked(() => {
         this.especieElegida.set(filtros.especie ?? '');
         this.tipoElegido.set(filtros.tipo ?? '');
         this.ciudadEscrita.set(filtros.ciudad ?? '');
-        this.cargar(filtros);
+        this.cargar(filtros, pagina);
       });
     });
   }
@@ -85,16 +86,24 @@ export class Catalogo {
   }
 
   reintentar(): void {
-    this.cargar({ especie: this.especieUrl(), tipo: this.tipoUrl(), ciudad: this.ciudadUrl() });
+    this.cargar({ especie: this.especieUrl(), tipo: this.tipoUrl(), ciudad: this.ciudadUrl() }, this.paginaActual());
   }
 
-  private cargar(filtros: { especie: Especie | null; tipo: TipoPublicacion | null; ciudad: string | null }): void {
+  private cargar(
+    filtros: { especie: Especie | null; tipo: TipoPublicacion | null; ciudad: string | null },
+    pagina: number,
+  ): void {
     this.cargando.set(true);
     this.error.set(null);
-    this.animalService.listar(filtros).subscribe({
-      next: (lista) => {
-        this.animales.set(lista);
+    this.animalService.listar({ ...filtros, pagina: pagina - 1, tamano: POR_PAGINA }).subscribe({
+      next: (resultado) => {
+        this.animales.set(resultado.animales);
+        this.total.set(resultado.total);
         this.cargando.set(false);
+        // La URL pedía una página que ya no existe (por ejemplo, adoptaron animales): se va a la última
+        if (resultado.animales.length === 0 && resultado.total > 0 && pagina > this.totalPaginas()) {
+          this.irAPagina(this.totalPaginas());
+        }
       },
       error: (e) => {
         this.error.set(mensajeDeError(e, 'No se pudo cargar el catálogo.'));

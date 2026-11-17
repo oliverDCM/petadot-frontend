@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { registrar } from './support/api';
+import { registrar, token } from './support/api';
 import { nuevoUsuario } from './support/datos';
 import { esperarCorreo, primerEnlace } from './support/mailpit';
 
@@ -12,6 +12,12 @@ test.describe('Recuperación de contraseña', () => {
     const u = nuevoUsuario('ADOPTANTE');
     await registrar(request, u);
     const nueva = 'Nueva-Clave-E2e-2026';
+
+    // Sesión abierta ANTES del cambio (como la de alguien que robó el token): debe morir con la contraseña vieja
+    const sesionVieja = await token(request, u);
+    const conSesionVieja = () =>
+      request.get('/api/solicitudes/mias', { headers: { Authorization: `Bearer ${sesionVieja}` } });
+    expect((await conSesionVieja()).status()).toBe(200);
 
     // 1. Pedir el enlace desde el login
     await page.goto('/login');
@@ -58,7 +64,8 @@ test.describe('Recuperación de contraseña', () => {
     await expect(page.getByText(`Hola, ${u.nombre}.`)).toBeVisible();
     await esperarCorreo(u.email, 'Tu contraseña de PetAdopt fue cambiada');
 
-    // La contraseña vieja ya no sirve
+    // Las sesiones abiertas con la contraseña anterior quedan revocadas, y la contraseña vieja ya no sirve
+    expect((await conSesionVieja()).status()).toBe(401);
     const vieja = await request.post('/api/auth/login', { data: { email: u.email, password: u.password } });
     expect(vieja.status()).toBe(401);
 
