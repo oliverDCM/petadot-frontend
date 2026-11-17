@@ -127,11 +127,11 @@ export class SolicitudesRecibidas {
   }
 
   filtrarEstado(estado: EstadoSolicitud | null): void {
-    this.router.navigate([], { queryParams: { estado }, queryParamsHandling: 'merge', replaceUrl: true });
+    void this.router.navigate([], { queryParams: { estado }, queryParamsHandling: 'merge', replaceUrl: true });
   }
 
   filtrarAnimal(valor: string): void {
-    this.router.navigate([], { queryParams: { animal: valor || null }, queryParamsHandling: 'merge', replaceUrl: true });
+    void this.router.navigate([], { queryParams: { animal: valor || null }, queryParamsHandling: 'merge', replaceUrl: true });
   }
 
   async decidir(s: Solicitud, decision: Decision): Promise<void> {

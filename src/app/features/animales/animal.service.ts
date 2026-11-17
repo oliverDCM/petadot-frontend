@@ -35,7 +35,7 @@ export class AnimalService {
       map((respuesta) => {
         const animales = respuesta.body ?? [];
         const cabecera = respuesta.headers.get('X-Total-Count');
-        const total = cabecera === null ? NaN : Number(cabecera);
+        const total = cabecera === null ? Number.NaN : Number(cabecera);
         return { animales, total: Number.isFinite(total) ? total : animales.length };
       }),
     );

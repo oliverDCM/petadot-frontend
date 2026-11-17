@@ -42,7 +42,7 @@ export class RestablecerContrasena implements OnInit {
     this.token.set(token && token.trim() ? token.trim() : null);
     if (token !== null) {
       // Limpia el token de la barra de direcciones y del historial
-      this.router.navigate([], { relativeTo: this.route, queryParams: {}, replaceUrl: true });
+      void this.router.navigate([], { relativeTo: this.route, queryParams: {}, replaceUrl: true });
     }
   }
 

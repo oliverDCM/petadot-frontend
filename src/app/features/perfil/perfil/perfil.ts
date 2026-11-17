@@ -48,6 +48,6 @@ export class Perfil {
   salir(): void {
     this.auth.cerrarSesion();
     this.avisos.info('Cerraste sesión.');
-    this.router.navigate(['/login']);
+    void this.router.navigate(['/login']);
   }
 }

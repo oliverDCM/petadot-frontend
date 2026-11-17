@@ -31,7 +31,7 @@ export class AuthService {
   readonly usuarioId = computed<number | null>(() => {
     const sesion = this.sesion();
     const sub = sesion ? leerJwt(sesion.token)?.sub : undefined;
-    const id = sub ? Number(sub) : NaN;
+    const id = sub ? Number(sub) : Number.NaN;
     return Number.isFinite(id) ? id : null;
   });
 

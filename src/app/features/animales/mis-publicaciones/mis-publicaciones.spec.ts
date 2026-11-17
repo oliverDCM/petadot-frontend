@@ -90,6 +90,8 @@ describe('MisPublicaciones', () => {
     };
     await componente.cambiarEstado(animal(1, 'DISPONIBLE'), componente.acciones(animal(1, 'DISPONIBLE'))[0]);
     http.expectNone((r) => r.url.includes('/estado'));
+    fixture.detectChanges();
+    expect((fixture.nativeElement as HTMLElement).querySelector('app-estado-chip')!.textContent).toContain('Disponible');
   });
 
   it('sin publicaciones invita a publicar', () => {

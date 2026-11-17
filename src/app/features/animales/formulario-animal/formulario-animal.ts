@@ -144,7 +144,7 @@ export class FormularioAnimal implements OnDestroy {
     peticion.subscribe({
       next: (animal) => {
         this.avisos.exito(id ? `Guardaste los cambios de ${animal.nombre}.` : `${animal.nombre} ya está publicado.`);
-        this.router.navigate(['/mis-publicaciones']);
+        void this.router.navigate(['/mis-publicaciones']);
       },
       error: (e) => {
         this.guardando.set(false);

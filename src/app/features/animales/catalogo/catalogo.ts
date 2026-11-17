@@ -65,7 +65,7 @@ export class Catalogo {
   }
 
   aplicarFiltros(): void {
-    this.router.navigate(['/catalogo'], {
+    void this.router.navigate(['/catalogo'], {
       queryParams: {
         especie: this.especieElegida() || null,
         tipo: this.tipoElegido() || null,
@@ -75,11 +75,11 @@ export class Catalogo {
   }
 
   limpiarFiltros(): void {
-    this.router.navigate(['/catalogo']);
+    void this.router.navigate(['/catalogo']);
   }
 
   irAPagina(n: number): void {
-    this.router.navigate([], {
+    void this.router.navigate([], {
       queryParams: { pagina: n > 1 ? n : null },
       queryParamsHandling: 'merge',
     });

@@ -55,7 +55,7 @@ export class Login {
       next: (sesion) => {
         this.avisos.exito(`Hola, ${sesion.nombre}.`);
         const destino = this.returnUrl();
-        this.router.navigateByUrl(destino && destino.startsWith('/') ? destino : '/catalogo');
+        void this.router.navigateByUrl(destino && destino.startsWith('/') ? destino : '/catalogo');
       },
       error: (e) => {
         this.cargando.set(false);

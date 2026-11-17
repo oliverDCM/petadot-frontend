@@ -24,7 +24,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
         auth.cerrarSesion();
         avisos.info('Tu sesión terminó. Inicia sesión de nuevo para continuar.');
         const actual = router.url;
-        router.navigate(['/login'], {
+        void router.navigate(['/login'], {
           queryParams: actual && !actual.startsWith('/login') ? { returnUrl: actual } : {},
         });
       }
